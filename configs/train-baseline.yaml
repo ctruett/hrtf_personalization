@@ -4,7 +4,7 @@ dataset:
   prepared_root: artifacts/prepared
 training:
   batch_size: 64
-  epochs: 100
+  epochs: 150
   learning_rate: 1.0e-4
   dropout: 0.5
   seed: 7

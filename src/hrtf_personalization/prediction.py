@@ -8,6 +8,7 @@ import cv2
 import h5py
 import numpy as np
 import torch
+from scipy.signal import resample_poly
 
 from hrtf_personalization.data.hrtfcnn import vertical_polar_to_interaural
 from hrtf_personalization.preprocessing import EarImagePreprocessor
@@ -63,6 +64,7 @@ def predict_sofa_from_image(
 
     hrir = np.asarray(predictions, dtype=np.float64)
     hrir = _postprocess_hrir(hrir)
+    hrir = _resample_hrir(hrir, from_hz=44100, to_hz=192000)
     if np.allclose(hrir[:, 0, :], hrir[:, 1, :]):
         warnings.warn(
             "Predicted left/right HRIR channels are identical. The current checkpoint is not producing a true "
@@ -74,7 +76,7 @@ def predict_sofa_from_image(
         inputs.output_sofa_path,
         hrir=hrir,
         source_positions_deg=source_positions,
-        sampling_rate_hz=44100.0,
+        sampling_rate_hz=192000.0,
     )
 
 
@@ -152,12 +154,23 @@ def _predict_binaural_batch(
     return model(anthropometrics, image_tensor)
 
 
-def _postprocess_hrir(hrir: np.ndarray, target_peak: float = 1.0) -> np.ndarray:
+def _resample_hrir(hrir: np.ndarray, from_hz: int, to_hz: int) -> np.ndarray:
+    from math import gcd
+    g = gcd(to_hz, from_hz)
+    up, down = to_hz // g, from_hz // g
+    return resample_poly(hrir, up, down, axis=-1)
+
+
+def _postprocess_hrir(hrir: np.ndarray, target_gain: float = 0.9) -> np.ndarray:
     centered = hrir - np.mean(hrir, axis=-1, keepdims=True)
-    peak = float(np.max(np.abs(centered)))
-    if peak == 0.0:
-        return centered
-    return centered * (target_peak / peak)
+    # Normalize by frequency-domain magnitude so convolution output won't clip.
+    # Time-domain peak normalization is wrong for filters: the freq response gain
+    # determines output level, not the IR peak, and can be far higher.
+    # max_mag shape: (1, R, 1) — max magnitude across all directions and frequencies per channel.
+    mag = np.abs(np.fft.rfft(centered, axis=-1))
+    max_mag = np.max(mag, axis=(0, 2), keepdims=True)
+    max_mag = np.where(max_mag == 0.0, 1.0, max_mag)
+    return centered * (target_gain / max_mag)
 
 
 def _load_template_directions(template_sofa_path: Path) -> tuple[np.ndarray, np.ndarray]:

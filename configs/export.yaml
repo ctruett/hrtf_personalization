@@ -2,5 +2,5 @@ export:
   checkpoint: artifacts/checkpoints/baseline.pt
   output_sofa: artifacts/exports/predicted_subject.sofa
   convention: SimpleFreeFieldHRIR
-  sampling_rate: 44100
+  sampling_rate: 192000
 
