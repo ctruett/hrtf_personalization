@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import shutil
+import sys
 import time
+from typing import Optional
 import warnings
 
+import plotext as plt
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
@@ -52,11 +56,12 @@ class Trainer:
             f"with {num_batches} batch(es) per epoch.",
             flush=True,
         )
+        display = _LossDisplay()
+        plot_losses: list[float] = []
         for epoch_index in range(self.config.epochs):
             epoch_start = time.perf_counter()
             epoch_loss = 0.0
             batches = 0
-            print(f"Epoch {epoch_index + 1}/{self.config.epochs} started.", flush=True)
             for batch_index, batch in enumerate(dataloader, start=1):
                 batch = self._move_batch_to_device(batch)
                 prediction = self._predict(batch)
@@ -72,19 +77,27 @@ class Trainer:
                     or batch_index % self.config.log_interval_batches == 0
                 ):
                     running_loss = epoch_loss / batches
-                    print(
-                        f"  batch {batch_index}/{num_batches} "
-                        f"loss={loss.item():.6f} running_loss={running_loss:.6f}",
-                        flush=True,
+                    plot_losses.append(running_loss)
+                    display.render(
+                        plot_losses,
+                        epoch=epoch_index + 1,
+                        num_epochs=self.config.epochs,
+                        batch=batch_index,
+                        num_batches=num_batches,
                     )
             average_loss = epoch_loss / max(batches, 1)
             epoch_seconds = time.perf_counter() - epoch_start
             history.append(average_loss)
-            print(
-                f"Epoch {epoch_index + 1}/{self.config.epochs} complete: "
-                f"avg_loss={average_loss:.6f} time={epoch_seconds:.1f}s",
-                flush=True,
+            plot_losses.append(average_loss)
+            display.render(
+                plot_losses,
+                epoch=epoch_index + 1,
+                num_epochs=self.config.epochs,
+                batch=num_batches,
+                num_batches=num_batches,
+                epoch_summary=f"avg={average_loss:.6f}  time={epoch_seconds:.1f}s",
             )
+        display.finish()
         return history
 
     def _predict(self, batch: PreparedBatch) -> torch.Tensor:
@@ -101,6 +114,51 @@ class Trainer:
             hrtf=batch.hrtf.to(self.config.device),
             direction=batch.direction.to(self.config.device),
         )
+
+
+class _LossDisplay:
+    _CHART_HEIGHT = 14
+
+    def __init__(self) -> None:
+        self._prev_lines: Optional[int] = None
+
+    def render(
+        self,
+        losses: list[float],
+        epoch: int,
+        num_epochs: int,
+        batch: int,
+        num_batches: int,
+        epoch_summary: Optional[str] = None,
+    ) -> None:
+        width = shutil.get_terminal_size((80, 24)).columns
+
+        plt.clear_figure()
+        plt.plot(losses, color="cyan")
+        plt.plotsize(width, self._CHART_HEIGHT)
+        plt.title("Training Loss")
+        plt.xlabel("Step")
+        plt.theme("dark")
+        chart = plt.build().rstrip("\n")
+
+        if epoch_summary:
+            status = f"  epoch {epoch}/{num_epochs}  |  batch {batch}/{num_batches}  |  {epoch_summary}"
+        else:
+            status = f"  epoch {epoch}/{num_epochs}  |  batch {batch}/{num_batches}"
+
+        output = chart + "\n" + status
+        num_lines = output.count("\n") + 1
+
+        if self._prev_lines is not None:
+            sys.stdout.write(f"\033[{self._prev_lines}A\033[J")
+
+        sys.stdout.write(output)
+        sys.stdout.flush()
+        self._prev_lines = num_lines
+
+    def finish(self) -> None:
+        sys.stdout.write("\n")
+        sys.stdout.flush()
 
 
 def _build_optimizer(model: nn.Module, optimizer_name: str, lr: float) -> torch.optim.Optimizer:

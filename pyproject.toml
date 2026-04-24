@@ -25,6 +25,7 @@ dependencies = [
   "sofar>=1.2.2",
   "pyfar>=0.7.2",
   "gdown>=5.2",
+  "plotext>=5.2",
 ]
 
 [project.optional-dependencies]
