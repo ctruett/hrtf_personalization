@@ -10,11 +10,6 @@ from torch.utils.data import DataLoader
 
 from hrtf_personalization.data import PreparedBatch
 
-try:
-    import torch_xla.core.xla_model as _xm  # type: ignore[import]
-except Exception:
-    _xm = None
-
 
 @dataclass
 class TrainingConfig:
@@ -68,10 +63,7 @@ class Trainer:
                 loss = self.loss_fn(prediction, batch.hrtf)
                 self.optimizer.zero_grad()
                 loss.backward()
-                if _xm is not None and self.config.device == "xla":
-                    _xm.optimizer_step(self.optimizer)
-                else:
-                    self.optimizer.step()
+                self.optimizer.step()
                 epoch_loss += loss.item()
                 batches += 1
                 if self.config.log_interval_batches > 0 and (
@@ -132,23 +124,13 @@ def _build_loss(loss_name: str) -> nn.Module:
 
 
 def _resolve_device(requested_device: str) -> str:
-    lower = requested_device.lower()
-    if lower == "tpu":
-        if _xm is not None:
-            return "xla"
-        warnings.warn(
-            "Requested device 'tpu' but torch_xla is not installed. Falling back to CPU.",
-            RuntimeWarning,
-            stacklevel=2,
-        )
-        return "cpu"
-    if lower == "mps":
-        if torch.backends.mps.is_available():
-            return "mps"
-        warnings.warn(
-            "Requested device 'mps' is unavailable in this runtime. Falling back to CPU.",
-            RuntimeWarning,
-            stacklevel=2,
-        )
-        return "cpu"
-    return requested_device
+    if requested_device.lower() != "mps":
+        return requested_device
+    if torch.backends.mps.is_available():
+        return "mps"
+    warnings.warn(
+        "Requested device 'mps' is unavailable in this runtime. Falling back to CPU.",
+        RuntimeWarning,
+        stacklevel=2,
+    )
+    return "cpu"
