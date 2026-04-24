@@ -1,0 +1,3 @@
+./run-hrtf prepare-cipic --config configs/dataset.yaml
+./run-hrtf train-conditional --config configs/train-conditional.yaml
+./run-predict-binaural --device mps

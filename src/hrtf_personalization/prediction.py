@@ -152,14 +152,12 @@ def _predict_binaural_batch(
     return model(anthropometrics, image_tensor)
 
 
-def _postprocess_hrir(hrir: np.ndarray, target_peak: float = 0.2) -> np.ndarray:
+def _postprocess_hrir(hrir: np.ndarray, target_peak: float = 1.0) -> np.ndarray:
     centered = hrir - np.mean(hrir, axis=-1, keepdims=True)
     peak = float(np.max(np.abs(centered)))
     if peak == 0.0:
         return centered
-    if peak > target_peak:
-        centered = centered * (target_peak / peak)
-    return centered
+    return centered * (target_peak / peak)
 
 
 def _load_template_directions(template_sofa_path: Path) -> tuple[np.ndarray, np.ndarray]:
