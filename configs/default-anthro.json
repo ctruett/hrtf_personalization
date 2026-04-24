@@ -1,23 +1,177 @@
 {
-  "order": [
-    "x1",
-    "x2",
-    "x3",
-    "x4",
-    "x5",
-    "x6",
-    "x7",
-    "x8",
-    "x9",
-    "x10",
-    "x11",
-    "x12",
-    "x13",
-    "x14",
-    "x15",
-    "x16",
-    "x17"
+  "measurements": [
+    {
+      "key": "x1",
+      "label": "Head width",
+      "value": 15.8,
+      "unit": "cm",
+      "view": "front",
+      "landmarks": ["head_left", "head_right"],
+      "notes": "Estimated from front view using the reference sheet scale.",
+      "confidence": 0.85
+    },
+    {
+      "key": "x2",
+      "label": "Head height",
+      "value": 22.4,
+      "unit": "cm",
+      "view": "side",
+      "landmarks": ["head_top", "head_bottom"],
+      "notes": "Estimated from side view. Skull top approximated slightly below hair volume.",
+      "confidence": 0.82
+    },
+    {
+      "key": "x3",
+      "label": "Head depth",
+      "value": 20.6,
+      "unit": "cm",
+      "view": "side",
+      "landmarks": ["head_front", "head_back"],
+      "notes": "Distance between the most forward point of the forehead and the rear of the skull.",
+      "confidence": 0.85
+    },
+    {
+      "key": "x4",
+      "label": "Pinna offset down",
+      "value": 3.4,
+      "unit": "cm",
+      "view": "side",
+      "landmarks": ["head_center", "ear_canal"],
+      "notes": "Vertical distance from the geometric center of the head profile to the ear canal.",
+      "confidence": 0.78
+    },
+    {
+      "key": "x5",
+      "label": "Pinna offset back",
+      "value": 2.2,
+      "unit": "cm",
+      "view": "side",
+      "landmarks": ["head_center", "ear_canal"],
+      "notes": "Horizontal distance from the geometric center of the head profile to the ear canal.",
+      "confidence": 0.78
+    },
+    {
+      "key": "x6",
+      "label": "Neck width",
+      "value": 12.2,
+      "unit": "cm",
+      "view": "front",
+      "landmarks": ["neck_left", "neck_right"],
+      "notes": "Estimated at the widest point of the neck in the front view.",
+      "confidence": 0.80
+    },
+    {
+      "key": "x7",
+      "label": "Neck height",
+      "value": 8.5,
+      "unit": "cm",
+      "view": "side",
+      "landmarks": ["neck_top", "neck_bottom"],
+      "notes": "Vertical extent of the visible neck area from the side.",
+      "confidence": 0.75
+    },
+    {
+      "key": "x8",
+      "label": "Neck depth",
+      "value": 11.8,
+      "unit": "cm",
+      "view": "side",
+      "landmarks": ["neck_front", "neck_back"],
+      "notes": "Horizontal depth of the neck from the side profile.",
+      "confidence": 0.75
+    },
+    {
+      "key": "x9",
+      "label": "Torso top width",
+      "value": 36.5,
+      "unit": "cm",
+      "view": "front",
+      "landmarks": ["torso_left", "torso_right"],
+      "notes": "Width of the upper torso region.",
+      "confidence": 0.70
+    },
+    {
+      "key": "x10",
+      "label": "Torso top height",
+      "value": 16.2,
+      "unit": "cm",
+      "view": "side",
+      "landmarks": ["torso_top", "torso_bottom"],
+      "notes": "Vertical height of the upper torso segment.",
+      "confidence": 0.70
+    },
+    {
+      "key": "x11",
+      "label": "Torso top depth",
+      "value": 24.5,
+      "unit": "cm",
+      "view": "side",
+      "landmarks": ["torso_front", "torso_back"],
+      "notes": "Horizontal depth of the upper chest area.",
+      "confidence": 0.72
+    },
+    {
+      "key": "x12",
+      "label": "Shoulder width",
+      "value": 47.2,
+      "unit": "cm",
+      "view": "front",
+      "landmarks": ["shoulder_left", "shoulder_right"],
+      "notes": "Biacromial width estimated from the front view.",
+      "confidence": 0.78
+    },
+    {
+      "key": "x13",
+      "label": "Head offset forward",
+      "value": 10.3,
+      "unit": "cm",
+      "view": "side",
+      "landmarks": ["head_center", "forehead_front"],
+      "notes": "Distance from the head center to the most forward point of the forehead.",
+      "confidence": 0.80
+    },
+    {
+      "key": "x14",
+      "label": "Height in inches",
+      "value": 72.0,
+      "unit": "in",
+      "view": "manual",
+      "landmarks": ["floor", "crown"],
+      "notes": "Provided standing height of 6 feet.",
+      "confidence": 1.0
+    },
+    {
+      "key": "x15",
+      "label": "Seated height",
+      "value": 37.8,
+      "unit": "in",
+      "view": "manual",
+      "landmarks": ["seat", "crown"],
+      "notes": "Estimated seated height based on typical proportions for a 6'0\" male.",
+      "confidence": 0.70
+    },
+    {
+      "key": "x16",
+      "label": "Head circumference",
+      "value": 22.8,
+      "unit": "in",
+      "view": "manual",
+      "landmarks": ["glabella", "opistocranion"],
+      "notes": "Estimated based on head width and depth measurements.",
+      "confidence": 0.75
+    },
+    {
+      "key": "x17",
+      "label": "Shoulder circumference",
+      "value": 45.5,
+      "unit": "in",
+      "view": "manual",
+      "landmarks": ["deltoids"],
+      "notes": "Estimated based on shoulder width and torso depth.",
+      "confidence": 0.70
+    }
   ],
+  "order": ["x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x10", "x11", "x12", "x13", "x14", "x15", "x16", "x17"],
   "labels": [
     "Head width",
     "Head height",
@@ -37,23 +191,5 @@
     "Head circumference",
     "Shoulder circumference"
   ],
-  "values_cm": [
-    15.6,
-    23.2,
-    20.5,
-    2.6,
-    3.8,
-    11.8,
-    10.5,
-    12.2,
-    37.5,
-    30.0,
-    23.8,
-    45.0,
-    10.7,
-    71.5,
-    37.0,
-    22.75,
-    47.0
-  ]
+  "values_cm": [15.8, 22.4, 20.6, 3.4, 2.2, 12.2, 8.5, 11.8, 36.5, 16.2, 24.5, 47.2, 10.3, 72.0, 37.8, 22.8, 45.5]
 }
