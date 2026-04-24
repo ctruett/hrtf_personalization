@@ -323,11 +323,16 @@ def _build_dataset_and_loader(config: dict) -> tuple[CIPICPreparedDataset, DataL
     dataset = CIPICPreparedDataset(config["dataset"]["prepared_root"])
     if len(dataset) == 0:
         raise SystemExit("No prepared samples found. Run prepare-cipic after dataset preparation.")
+    device = config["training"].get("device", "cpu")
+    use_cuda = str(device).startswith("cuda")
     dataloader = DataLoader(
         dataset,
         batch_size=config["training"]["batch_size"],
         shuffle=True,
         collate_fn=collate_prepared_samples,
+        num_workers=config["training"].get("num_workers", 4 if use_cuda else 0),
+        pin_memory=use_cuda,
+        persistent_workers=use_cuda,
     )
     return dataset, dataloader
 
