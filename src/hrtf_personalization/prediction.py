@@ -63,6 +63,7 @@ def predict_sofa_from_image(
             predictions.append(output.cpu().numpy())
 
     hrir = np.asarray(predictions, dtype=np.float64)
+    hrir = _diffuse_field_equalize(hrir)
     hrir = _postprocess_hrir(hrir)
     hrir = _resample_hrir(hrir, from_hz=44100, to_hz=192000)
     if np.allclose(hrir[:, 0, :], hrir[:, 1, :]):
@@ -152,6 +153,34 @@ def _predict_binaural_batch(
     if uses_ear_side:
         return model(anthropometrics, image_tensor, ear_side_tensor)
     return model(anthropometrics, image_tensor)
+
+
+def _diffuse_field_equalize(hrir: np.ndarray) -> np.ndarray:
+    # Average power spectrum across all directions and ears → diffuse field response.
+    # Shape: (M, R, N) → spec (M, R, K) → mean power (K,)
+    spec = np.fft.rfft(hrir, axis=-1)
+    df_power = np.mean(np.abs(spec) ** 2, axis=(0, 1))
+    df_mag = np.sqrt(df_power)
+    # Floor at 1 % of the peak to avoid division blow-up at nulls.
+    floor = 0.01 * np.max(df_mag)
+    df_mag = np.where(df_mag < floor, floor, df_mag)
+    equalized_spec = spec / df_mag[np.newaxis, np.newaxis, :]
+    equalized = np.fft.irfft(equalized_spec, n=hrir.shape[-1], axis=-1)
+    # Tukey window to suppress ringing at the edges introduced by spectral division.
+    window = _tukey_window(hrir.shape[-1], alpha=0.1)
+    return equalized * window[np.newaxis, np.newaxis, :]
+
+
+def _tukey_window(n: int, alpha: float = 0.1) -> np.ndarray:
+    # Flat in the centre, cosine tapers over alpha/2 of each end.
+    if alpha <= 0.0:
+        return np.ones(n)
+    taper = int(alpha * n / 2)
+    window = np.ones(n)
+    t = np.arange(taper)
+    window[:taper] = 0.5 * (1 - np.cos(np.pi * t / taper))
+    window[-taper:] = window[:taper][::-1]
+    return window
 
 
 def _resample_hrir(hrir: np.ndarray, from_hz: int, to_hz: int) -> np.ndarray:
