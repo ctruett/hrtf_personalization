@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hrtf-personalization"
+version = "0.1.0"
+description = "Modern reimplementation scaffold for applsci-08-02180 using SOFA-aware Python tooling."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+  { name = "Christopher Truett" }
+]
+dependencies = [
+  "numpy>=1.26",
+  "scipy>=1.13",
+  "pandas>=2.2",
+  "h5py>=3.11",
+  "opencv-python>=4.10",
+  "pyyaml>=6.0",
+  "torch>=2.3",
+  "torchvision>=0.18",
+  "torchaudio>=2.3",
+  "sofar>=1.2.2",
+  "pyfar>=0.7.2",
+  "gdown>=5.2",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2",
+  "ruff>=0.5",
+  "mypy>=1.10",
+]
+
+[project.scripts]
+hrtf-personalization = "hrtf_personalization.cli.main:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+strict = false

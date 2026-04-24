@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+RUN_HRTF="$ROOT_DIR/run-hrtf"
+
+if [[ ! -x "$RUN_HRTF" ]]; then
+  echo "Missing CLI launcher at $RUN_HRTF" >&2
+  exit 1
+fi
+
+CHECKPOINT="artifacts/checkpoints/conditional.pt"
+TEMPLATE_SOFA="template.sofa"
+DEVICE="cpu"
+OUTPUT_SOFA=""
+LEFT_IMAGE="images/left.jpg"
+RIGHT_IMAGE="images/right.jpg"
+ANTHRO=""
+ANTHRO_JSON=""
+
+usage() {
+  cat <<'EOF'
+Usage:
+  ./run-predict-binaural [--left-image PATH] [--right-image PATH] [--anthro CSV | --anthro-json PATH] [options]
+
+Default image paths:
+  --left-image PATH       Path to the left ear image (default: images/left.jpg)
+  --right-image PATH      Path to the right ear image (default: images/right.jpg)
+  Anthropometrics:
+    --anthro CSV          Comma-separated 17 anthropometric values
+    --anthro-json PATH    JSON file containing the 17 anthropometric values
+    If omitted, the script uses configs/default-anthro.json
+
+Optional:
+  --checkpoint PATH       Model checkpoint (default: artifacts/checkpoints/conditional.pt)
+  --template-sofa PATH    Template SOFA with SourcePosition grid (default: template.sofa)
+  --output-sofa PATH      Output SOFA path (default: timestamped file under predictions/)
+  --device NAME           Runtime device, e.g. cpu or mps (default: cpu)
+  --help                  Show this message
+
+Examples:
+  ./run-predict-binaural \
+    --left-image images/left-ear.jpg \
+    --right-image images/right-ear.jpg \
+    --anthro 15.6,23.2,20.5,2.6,3.8,11.8,10.5,12.2,37.5,30.0,23.8,45.0,10.7,71.5,37.0,22.75,47.0
+
+  ./run-predict-binaural \
+    --left-image images/left-ear.jpg \
+    --right-image images/right-ear.jpg \
+    --anthro-json artifacts/predictions/my_subject.anthro.json \
+    --device mps
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --left-image)
+      LEFT_IMAGE="${2:-}"
+      shift 2
+      ;;
+    --right-image)
+      RIGHT_IMAGE="${2:-}"
+      shift 2
+      ;;
+    --anthro)
+      ANTHRO="${2:-}"
+      shift 2
+      ;;
+    --anthro-json)
+      ANTHRO_JSON="${2:-}"
+      shift 2
+      ;;
+    --checkpoint)
+      CHECKPOINT="${2:-}"
+      shift 2
+      ;;
+    --template-sofa)
+      TEMPLATE_SOFA="${2:-}"
+      shift 2
+      ;;
+    --output-sofa)
+      OUTPUT_SOFA="${2:-}"
+      shift 2
+      ;;
+    --device)
+      DEVICE="${2:-}"
+      shift 2
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -n "$ANTHRO" && -n "$ANTHRO_JSON" ]]; then
+  echo "Provide either --anthro or --anthro-json, not both." >&2
+  usage >&2
+  exit 1
+fi
+
+if [[ ! -f "$ROOT_DIR/$LEFT_IMAGE" && ! -f "$LEFT_IMAGE" ]]; then
+  echo "Left ear image not found: $LEFT_IMAGE" >&2
+  exit 1
+fi
+
+if [[ ! -f "$ROOT_DIR/$RIGHT_IMAGE" && ! -f "$RIGHT_IMAGE" ]]; then
+  echo "Right ear image not found: $RIGHT_IMAGE" >&2
+  exit 1
+fi
+
+cd "$ROOT_DIR"
+
+CMD=(
+  "$RUN_HRTF"
+  predict
+  --checkpoint "$CHECKPOINT"
+  --left-image "$LEFT_IMAGE"
+  --right-image "$RIGHT_IMAGE"
+  --template-sofa "$TEMPLATE_SOFA"
+  --device "$DEVICE"
+)
+
+if [[ -n "$ANTHRO" ]]; then
+  CMD+=(--anthro "$ANTHRO")
+else
+  CMD+=(--anthro-json "$ANTHRO_JSON")
+fi
+
+if [[ -n "$OUTPUT_SOFA" ]]; then
+  CMD+=(--output-sofa "$OUTPUT_SOFA")
+fi
+
+exec "${CMD[@]}"

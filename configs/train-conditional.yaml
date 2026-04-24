@@ -1,0 +1,22 @@
+experiment:
+  name: conditional-hrtfcnn
+dataset:
+  prepared_root: artifacts/prepared
+training:
+  batch_size: 64
+  epochs: 75
+  learning_rate: 1.0e-3
+  seed: 7
+  device: mps
+  optimizer: adam
+  loss: mse
+  log_interval_batches: 25
+model:
+  type: conditional
+  anthropometric_dim: 17
+  direction_dim: 2
+  ear_side_dim: 1
+  hrtf_dim: 200
+  ear_image_size: 64
+output:
+  checkpoint: artifacts/checkpoints/conditional.pt

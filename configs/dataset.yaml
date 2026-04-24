@@ -1,0 +1,17 @@
+dataset:
+  source_layout: hrtfcnn
+  hrtfcnn_repo_root: /tmp/HRTFCNN
+  prepared_root: artifacts/prepared
+  image_size: 64
+  crop:
+    x: 50
+    y: 50
+    width: 450
+    height: 450
+  blur_kernel: 5
+  edge_detection:
+    enabled: true
+    low_threshold: 50
+    high_threshold: 100
+  anthropometrics:
+    use_first_n: 17

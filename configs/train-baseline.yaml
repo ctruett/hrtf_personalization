@@ -1,0 +1,18 @@
+experiment:
+  name: baseline-paper-reproduction
+dataset:
+  prepared_root: artifacts/prepared
+training:
+  batch_size: 64
+  epochs: 100
+  learning_rate: 1.0e-4
+  dropout: 0.5
+  seed: 7
+  device: cpu
+  log_interval_batches: 25
+model:
+  type: baseline
+  anthropometric_dim: 17
+  ear_side_dim: 1
+  hrtf_dim: 200
+  ear_image_size: 64

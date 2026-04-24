@@ -1,0 +1,7 @@
+evaluation:
+  checkpoint: artifacts/checkpoints/conditional.pt
+  prepared_root: artifacts/prepared
+  model_type: auto
+  batch_size: 64
+  output_path: artifacts/reports/conditional_metrics.json
+
